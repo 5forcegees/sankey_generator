@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from csv import reader, QUOTE_NONE
 from argparse import ArgumentParser
-import re, argparse
+import re
 
 parser = ArgumentParser(description="produces a sankey chart html doc based on a provided csv")
 parser.add_argument("-f", "--filename", type=str, help="the path to the csv source file")
