@@ -74,7 +74,7 @@ for index_r, content_line in enumerate(reader):
 	    # skip index_l == 0, we don't have a previous value yet so there's nothing to link
             # skip N/A, 0, ', " , etc.  they create circular links or otherwise throw off layers
 	    if index_l > 0 \
-		    and not (re.match(na_regex, previous_value) and re.match(na_regex, value) ) \
+		    and not (re.match(na_regex, previous_value) or re.match(na_regex, value) ) \
 		    and not (re.match(quote_regex, previous_value)) \
 		    and not (previous_value == 'TBD' and value == 'TBD' ) \
 	            and ( re.match(loop_regex, previous_value ) ):
