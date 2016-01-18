@@ -8,7 +8,12 @@ import os.path
 parser = ArgumentParser(description="produces a sankey chart html doc based on the first sheet of a provided xls")
 parser.add_argument("-f", "--filename", type=str, help="the path to the xls source file")
 parser.add_argument("-o", "--output_dir", type=str, help="the path to the output directory", default='.')
-parser.add_argument("-w", "--width", type=int, help="the desired chart width", default=1400)
+parser.add_argument("-d", "--default_l2_display", type=str, help="the default L2 value to display before user selection\n\
+                                                                 can be passed in as string value or int\
+                                                                 if string: try matching on the value\
+                                                                 if int: use the int as the index value of the L2 list",
+                    default='')
+parser.add_argument("-w", "--width", type=int, help="the desired chart width" )
 parser.add_argument("-hi", "--height", type=int, help='the desired chart height.  Will try to set intelligent \
                                                         height based on number of links if none is passed in')
 # will only accept 2-5 layers
@@ -20,7 +25,9 @@ parser.add_argument("-cl2", "--combine-l2", action="store_true", default=False,
 args = parser.parse_args()
 filename = args.filename
 output_dir = args.output_dir
-width = args.width
+width = args.width if args.width else '100%'
+if isinstance(width, int):
+    width = str(width) + 'px'
 height = args.height
 num_layers = args.num_layers if args.num_layers else 6
 combine_l2 = args.combine_l2 if args.combine_l2 else False
@@ -36,7 +43,7 @@ def quote(foo):
     if isinstance(foo, int):
         return (foo)
     elif isinstance(foo, str) or isinstance(foo, unicode):
-        return '\'' + foo + ' \''
+        return '\"' + foo + ' \"'
     else:
         print(str(foo) + ' is a ' + str(type(foo)))
         exit("def quote got passed a thing that was not a string or int")
@@ -125,7 +132,7 @@ for l2_value in l2_values:
                 index_l -= 1
 
             value = str(col_value.value)
-            value = value.replace('\'', '\\\'')
+            value = value.replace('\'', '\\\"')
             value = value.replace('\n', '')
 
             # skip index_l == 0, we don't have a previous value yet so there's nothing to link
@@ -146,106 +153,136 @@ for l2_value in l2_values:
     # save the resulting layer list with the l2_value as the key
     l2_layers[l2_value] = layers
 
-
+json_output = """
+                   var chart_data = {
+              """
+default_chart_data = 'var defaultDataArray = { '
+checkbox_html = '<div id="L2_outer"> <span id="toggleInner">Click here to Show/Hide this div </span><div id="L2_inner" > '
+first_l2 = True
 for l2_key in l2_layers.keys():
-    output = '    data.addRows( [ '
+    json_output += "\"" + l2_key + "\": {"
+    checkbox_html += "<input type=checkbox class=\"selectL2 \" name=\"" + l2_key + "\" "
+    if first_l2:
+        default_chart_data += "\"" + l2_key + "\": {"
+        checkbox_html += " checked=\"checked\" > " + l2_key + " "
+    else:
+        checkbox_html += " >" + l2_key + " "
     # better to control the layers by limiting what we put into layers{} but this is much simpler and it's fast anyway
     displayed_layer_count = 0
     for layer in sorted(l2_layers[l2_key].keys()):
+        json_output += "\"" + str(layer) + "\": [ "
+        if first_l2:
+            default_chart_data += "\"" + str(layer) + "\": [ "
         displayed_layer_count += 1
         if displayed_layer_count <= num_layers:
             for match_key in l2_layers[l2_key][layer]:
-                output += match_key + str(quote(link_count[match_key])) + ' ] \n,'
+                json_output += match_key + str(quote(link_count[match_key])) + ' ] \n,'
+                if first_l2:
+                    default_chart_data += match_key + str(quote(link_count[match_key])) + ' ] \n,'
+
         else:
             print('ignoring layer ' + str(layer) + '->' + str(layer + 1) + ' because num_layers is ' + str(num_layers))
 
-    output = output.rstrip(',')
-    output += ' ] );'
+        json_output = json_output.rstrip(',')
+        json_output += ' ],'
+        if first_l2:
+            default_chart_data = default_chart_data.rstrip(',')
+            default_chart_data += ' ],'
 
-    # sets the height based on the number of lines we ended up with in output (only if height value not passed in)
-    num_lines = len(output.splitlines())
-    height = args.height if args.height else int(num_lines * 10) + 100
-    print('height set to '+str(height))
-    # html fragments for output file
-    html = """
-    <html>
-        <head>
-            <title>"""
+    json_output = json_output.rstrip(',')
+    json_output += ' } ,'
+    if first_l2:
+        default_chart_data = default_chart_data.rstrip(',')
+        default_chart_data += ' } ,'
 
-    html += l2_key
+    first_l2 = False
 
-    html += """
-            </title>
-        </head>
-    <body>
+
+json_output = json_output.rstrip(',')
+json_output += ' } ; '
+
+
+# sets the height based on the number of lines we ended up with in output (only if height value not passed in)
+num_lines = len(default_chart_data.splitlines())
+height = args.height if args.height else int(num_lines * 10) + 100
+
+default_chart_data = default_chart_data.rstrip(',')
+default_chart_data += ' } ;'
+
+checkbox_html += " </div> </div>"
+
+
+html = """
+<html>
+    <head>
+"""
+
+html += """
         <script type="text/javascript"
-               src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['sankey']}]}">
+           src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['sankey']}]}">
         </script>
+        <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
+        <script type="text/javascript" src="chart_data.js"></script>
+        <script type="text/javascript" src="chart_handler.js"></script>
+    """
+html += """
+
+"""
+html += """
+
+    </head>
+    <body>
         <h1>
+"""
+
+html += ' Sankey Visualization <br><hr>'
+
+html += """
+    </h1>
     """
+html += checkbox_html
 
-    html += l2_key + ' Sankey Visualization <br><hr>'
+html+= """
+    <hr>
+    <div id="sankey_multiple"
+"""
 
-    html += """
-        </h1>
-        <div id="sankey_multiple"
-    """
+html += ' style="width: ' + str(width) + '; height: ' + str(height) + 'px;">     </div>'
 
-    html += ' style="width: ' + str(width) + 'px; height: ' + str(height) + 'px;"> '
+html += """
 
-    html += """
-        </div>
-        <script type="text/javascript">
-        google.setOnLoadCallback(drawChart);
-        function drawChart() {
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'From');
-            data.addColumn('string', 'To');
-            data.addColumn('number', 'Weight');
-    """
-    html += output
-    html += """
+"""
 
-        // Set chart options
-        var options = {
-            sankey: {
-            link: {
-            colorMode: 'source',
-            color: {
-                stroke: 'lightgray',
-                strokeWidth: 1
-                },
-            },
-            node: {
-                interactivity: true,
-            width: 15,
-            label: {
-                  fontName: 'Arial',
-                  fontSize: 12,
-                  bold: true,
-                },
-           }
-        }
-        };
+html += """
 
-        // Instantiate and draw our chart, passing in some options.
-        var chart = new google.visualization.Sankey(document.getElementById('sankey_multiple'));
-        chart.draw(data, options);
-       }
+</body>
+<script type="text/javascript">
+
+    var dataArr = dataToArray(defaultDataArray);
+    google.setOnLoadCallback(drawChart(dataArr));
+
     </script>
-    </body>
-    </html>
-    """
+</html>
+"""
 
-    output_filename = l2_key + '_' + str(num_layers) + 'layers.html'
-    output_filename = output_filename.replace('\ ', '_')
-    output_path = os.path.join(output_dir, output_filename)
+output_filename = 'Sankey_' + str(num_layers) + 'layers.html'
+output_filename = output_filename.replace('\ ', '_')
+output_path = os.path.join(output_dir, output_filename)
 
-    try:
-        target = open(output_path, 'w')
-    except IOError:
-        print('Could not write output to ' + output_path)
-        exit('Exiting. Please resolve output path')
-    print('writing output to '+output_path)
-    target.write(html)
-    target.close()
+js_output_path = os.path.join(output_dir, "chart_data.js")
+jsonfh = open(js_output_path, 'w')
+jsonfh.write(json_output + """
+
+""" + default_chart_data + """
+ """)
+
+jsonfh.close()
+
+try:
+    target = open(output_path, 'w')
+except IOError:
+    print('Could not write output to ' + output_path)
+    exit('Exiting. Please resolve output path')
+print('writing output to '+output_path)
+target.write(html)
+target.close()
