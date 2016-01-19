@@ -21,13 +21,52 @@
             <h3>Universe 2.0 E2E Hierarchy</h3>           
         </div>
 
-    <div id="L2_outer"> <span id="toggleInner" style="display:none;">Click here to Show/Hide this div </span><div id="L2_inner" > <input type=checkbox class="selectL2 " name="Returns Management" > Returns Management <input type=checkbox class="selectL2 " name="Pay"  >Pay <input type=checkbox class="selectL2 " name="Bill Support"  >Bill Support <input type=checkbox class="selectL2 " name="Advance Care"  >Advance Care <input type=checkbox class="selectL2 " name="Value Added Services"  >Value Added Services <input type=checkbox class="selectL2 " name="Shopping Cart"  >Shopping Cart <input type=checkbox class="selectL2 " name="Buy"  >Buy <input type=checkbox class="selectL2 " name="Authorization and Authentication"  >Authorization and Authentication <input type=checkbox class="selectL2 " name="Store Management"  >Store Management <input type=checkbox class="selectL2 " name="Marketing"  >Marketing <input type=checkbox class="selectL2 " name="Notifications"  >Notifications <input type=checkbox class="selectL2 " name="BYOD"  >BYOD <input type=checkbox class="selectL2 " name="Terminate Order"  >Terminate Order <input type=checkbox class="selectL2 " name="Search"  >Search <input type=checkbox class="selectL2 " name="Make Contact"  >Make Contact <input type=checkbox class="selectL2 " name="Shipping"  >Shipping <input type=checkbox class="selectL2 " name="Upgrade Orders"  >Upgrade Orders <input type=checkbox class="selectL2 " name="Issue Management"  >Issue Management <input type=checkbox class="selectL2 " name="Navigation"  >Navigation <input type=checkbox class="selectL2 " name="Utility Features"  >Utility Features <input type=checkbox class="selectL2 " name="Account Changes"  >Account Changes <input type=checkbox class="selectL2 " name="Device Support"  >Device Support <input type=checkbox class="selectL2 " name="Customer Dashboard"  >Customer Dashboard <input type=checkbox class="selectL2 " name="Lookup Customer"  >Lookup Customer <input type=checkbox class="selectL2 " name="Browse"  >Browse <input type=checkbox class="selectL2 " name="Memos"  >Memos <input type=checkbox class="selectL2 " name="Change Orders"  >Change Orders  </div> </div>
+    <div id="L2_outer"> <span id="toggleInner" style="display:none;">Click here to Show/Hide this div </span><div id="L2_inner" > 
+
+        <input type=checkbox class="selectL2 " name="Account Changes" >Account Changes 
+        <input type=checkbox class="selectL2 " name="Advance Care" >Advance Care 
+        <input type=checkbox class="selectL2 " name="Authorization and Authentication" >Authorization and Authentication 
+        <input type=checkbox class="selectL2 " name="Bill Support" >Bill Support 
+        <input type=checkbox class="selectL2 " name="Browse" >Browse 
+        <input type=checkbox class="selectL2 " name="Buy" >Buy 
+        <input type=checkbox class="selectL2 " name="BYOD" >BYOD 
+        <input type=checkbox class="selectL2 " name="Change Orders" >Change Orders 
+        <input type=checkbox class="selectL2 " name="Customer Dashboard" >Customer Dashboard 
+        <input type=checkbox class="selectL2 " name="Device Support" >Device Support 
+        <input type=checkbox class="selectL2 " name="Issue Management" >Issue Management 
+        <input type=checkbox class="selectL2 " name="Lookup Customer" >Lookup Customer 
+        <input type=checkbox class="selectL2 " name="Make Contact" >Make Contact 
+        <input type=checkbox class="selectL2 " name="Marketing" >Marketing 
+        <input type=checkbox class="selectL2 " name="Memos" >Memos 
+        <input type=checkbox class="selectL2 " name="Navigation" >Navigation 
+        <input type=checkbox class="selectL2 " name="Notifications" >Notifications 
+        <input type=checkbox class="selectL2 " name="Pay" >Pay 
+        <input type=checkbox class="selectL2 " name="Returns Management" > Returns Management 
+        <input type=checkbox class="selectL2 " name="Search" >Search 
+        <input type=checkbox class="selectL2 " name="Shipping" >Shipping 
+        <input type=checkbox class="selectL2 " name="Shopping Cart" >Shopping Cart 
+        <input type=checkbox class="selectL2 " name="Store Management" >Store Management 
+        <input type=checkbox class="selectL2 " name="Terminate Order" >Terminate Order 
+        <input type=checkbox class="selectL2 " name="Upgrade Orders" >Upgrade Orders 
+        <input type=checkbox class="selectL2 " name="Utility Features" >Utility Features 
+        <input type=checkbox class="selectL2 " name="Value Added Services" >Value Added Services 
+
+    <button id="clearAll" onclick="clearAllChecks();">Clear Selection</button>
+    </div> </div>
     
     </div>
     <div id="sankey_multiple" style="width: 100%; height: 100%;">
         
         <div id="introText">
-            Select an L2 from above (or multiple)
+            Welcome to the E2E Relationship Tracker, developed by the Rebellion Platform architecture team.  Simply select an L2 (or multiple L2s) to see the relationships between the layers. There will be four columns generated: 
+            <ul>
+                <li>Rebellion Screen</li>
+                <li>Rebellion Facade API</li>
+                <li>Core API</li>
+                <li>Ericsson WSIL</li>
+            </ul>
+            You can click on the colored rectangle immediately next to a label to see the direct upstream and downstream relationships for a given node. The source data is the E2E Mapping spreadsheet.  Note that an "NA" value implies either a missing data field in the spreadsheet or that there is no Ericsson service (as in Store operations). <br/><br/>
+            For any questions, please contact Eric.Fahsl@T-Mobile.com or Glenn.Dufresne@T-Mobile.com.
         </div>
 
     </div>
@@ -41,6 +80,9 @@
     //set height of sankey_multiple div
     // var sankeyHeight = window.innerHeight - $("#header").height();
     // $("#sankey_multiple").height(sankeyHeight);
-
+    function clearAllChecks() {
+         $('input:checkbox').removeAttr('checked');
+         drawChart([]);
+    }
     </script>
 </html>
