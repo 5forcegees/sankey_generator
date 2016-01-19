@@ -18,9 +18,6 @@ parser.add_argument("-hi", "--height", type=int, help='the desired chart height.
                                                         height based on number of links if none is passed in')
 # will only accept 2-5 layers
 parser.add_argument("-n", "--num_layers", type=int, help="the desired number of layers", choices=range(2, 6), default=4)
-parser.add_argument("-cl2", "--combine-l2", action="store_true", default=False,
-                    help="If -cl2 is passed lump all the rows together regardless of L2 value.  \
-                    Otherwise produce a separate outfile for each L2 value")
 
 args = parser.parse_args()
 filename = args.filename
@@ -30,8 +27,7 @@ if isinstance(width, int):
     width = str(width) + 'px'
 height = args.height
 num_layers = args.num_layers if args.num_layers else 6
-combine_l2 = args.combine_l2 if args.combine_l2 else False
-
+combine_l2 = False
 
 # parse up the filename so it displays properly in the output file name
 head, tail = os.path.split(filename)
@@ -102,6 +98,9 @@ na_regex = re.compile('N\/A|TBD|0')
 
 for l2_value in l2_values:
     layers = {}
+    # link_count carries the number of times each link exists, will be used for weight in the chart
+    link_count[l2_value] = {}
+
     for index_r in range(sheet0.nrows):
         # make N layers of lists in dict layers, we'll push in the values later but it needs the empty placeholder first
         for index_l in range(len(sheet0.row(index_r))):
@@ -141,9 +140,9 @@ for l2_value in l2_values:
 
                 match_key = '[ ' + str(quote(previous_value)) + ', ' + str(quote(value)) + ', '
                 if str(match_key) in link_count.keys():
-                    link_count[match_key] += 1
+                    link_count[l2_value][match_key] += 1
                 else:
-                    link_count[match_key] = 1
+                    link_count[l2_value][match_key] = 1
 
                 if match_key not in layers[index_l]:
                     layers[index_l].append(match_key)
@@ -158,9 +157,11 @@ json_output = """
               """
 default_chart_data = 'var defaultDataArray = { '
 checkbox_html = '<div id="L2_outer"> <span id="toggleInner">Click here to Show/Hide this div </span><div id="L2_inner" > '
+num_l2 = 0
 first_l2 = True
 for l2_key in l2_layers.keys():
     json_output += "\"" + l2_key + "\": {"
+    num_l2 += 1
     checkbox_html += "<input type=checkbox class=\"selectL2 \" name=\"" + l2_key + "\" "
     if first_l2:
         default_chart_data += "\"" + l2_key + "\": {"
@@ -171,17 +172,16 @@ for l2_key in l2_layers.keys():
     displayed_layer_count = 0
     for layer in sorted(l2_layers[l2_key].keys()):
         json_output += "\"" + str(layer) + "\": [ "
+
         if first_l2:
             default_chart_data += "\"" + str(layer) + "\": [ "
         displayed_layer_count += 1
         if displayed_layer_count <= num_layers:
             for match_key in l2_layers[l2_key][layer]:
-                json_output += match_key + str(quote(link_count[match_key])) + ' ] \n,'
-                if first_l2:
-                    default_chart_data += match_key + str(quote(link_count[match_key])) + ' ] \n,'
+                json_output += match_key + str(quote(link_count[l2_key][match_key])) + ' ] \n,'
 
-        else:
-            print('ignoring layer ' + str(layer) + '->' + str(layer + 1) + ' because num_layers is ' + str(num_layers))
+                if first_l2:
+                    default_chart_data += match_key + str(quote(link_count[l2_key][match_key])) + ' ] \n,'
 
         json_output = json_output.rstrip(',')
         json_output += ' ],'
@@ -197,10 +197,8 @@ for l2_key in l2_layers.keys():
 
     first_l2 = False
 
-
 json_output = json_output.rstrip(',')
 json_output += ' } ; '
-
 
 # sets the height based on the number of lines we ended up with in output (only if height value not passed in)
 num_lines = len(default_chart_data.splitlines())
@@ -210,7 +208,6 @@ default_chart_data = default_chart_data.rstrip(',')
 default_chart_data += ' } ;'
 
 checkbox_html += " </div> </div>"
-
 
 html = """
 <html>
@@ -235,7 +232,7 @@ html += """
         <h1>
 """
 
-html += ' Sankey Visualization <br><hr>'
+html += 'API Interaction Sankey Visualization <br><hr>'
 
 html += """
     </h1>
@@ -271,6 +268,7 @@ output_path = os.path.join(output_dir, output_filename)
 
 js_output_path = os.path.join(output_dir, "chart_data.js")
 jsonfh = open(js_output_path, 'w')
+print('writing chart_data.js to ' + js_output_path)
 jsonfh.write(json_output + """
 
 """ + default_chart_data + """
@@ -278,11 +276,12 @@ jsonfh.write(json_output + """
 
 jsonfh.close()
 
-try:
-    target = open(output_path, 'w')
-except IOError:
-    print('Could not write output to ' + output_path)
-    exit('Exiting. Please resolve output path')
-print('writing output to '+output_path)
-target.write(html)
-target.close()
+# we're switching to static html file will rip out the html logic later
+# try:
+#     target = open(output_path, 'w')
+# except IOError:
+#     print('Could not write output to ' + output_path)
+#     exit('Exiting. Please resolve output path')
+# print('writing output to '+output_path)
+# target.write(html)
+# target.close()
