@@ -1,0 +1,52 @@
+h1, h2, h3, h4, h5, h6 {
+    font-family: Allan,Georgia,Times,serif;
+    text-shadow: 2px 2px 2px #bbb;
+    color: #e20074;
+}
+
+body {
+	font-family: 'PT Sans',Helvetica,Arial,sans-serif;
+	margin: 0px;
+}
+
+#header {
+	width:100%;
+	z-index: 8;
+	background: #E6E6E6;
+    border-bottom: 1px dotted darkgrey;
+}
+
+#introText {
+	margin-top:20%;
+	margin-bottom:20%;
+	margin-left:25%;
+	margin-right:25%;
+	font-style: italic;
+	color: #e20074;
+}
+
+#L2_outer {
+	font-size:0.7em;
+}
+
+#sankey_multiple {
+	/*margin-top: 30px;*/
+}
+
+#title {
+	width: 190px;
+	float:left;
+	margin: 4px;
+  height:100%;
+}
+
+#title h1,h2,h3,h4 {
+	margin:0;
+}
+
+#subtitle {
+	font-size:0.7em;
+	font-style: italic;
+	color: #e20074;
+}
+

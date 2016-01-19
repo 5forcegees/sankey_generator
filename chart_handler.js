@@ -71,7 +71,7 @@ function drawChart(dataElements) {
             interactivity: true,
             width: 15,
             label: {
-                fontName: 'Arial',
+                fontName: 'PT Sans, Arial',
                 fontSize: 12,
                 bold: true,
                 },
