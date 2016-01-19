@@ -43,17 +43,17 @@ function dataToArray(data){
             layers[layer].push(data[l2_value][layer]);
         }
     }
-    var returnArray = [];
 
+    var returnArray = [];
     var rowValue = [];
     replaceIndex = -1;
     for (layer in layers){
         //console.log("layer: " + layer);
         for ( keyValue in layers[layer]){
             //console.log("keyValue: "+keyValue)
-            foundMatch = false;
             replaceIndex = -1;
             for (row in layers[layer][keyValue] ){
+                foundMatch = false;
                 rowValue = setWeight(layers[layer][keyValue][row], returnArray);
                 //console.log("got returned rowValue: " + rowValue );
                 if (foundMatch){
@@ -84,7 +84,7 @@ function setWeight(row, returnArray){
                 updatedRow[0] = parsedRow[0];
                 updatedRow[1] = parsedRow[1];
                 updatedRow[2] = +parsedRow[2] + +parsedReturnArray[2];
-                //console.log( "returning updatedRow: " + updatedRow );
+                console.log( "returning updatedRow: " + updatedRow );
                 foundMatch = true;
                 replaceIndex = returnArrayIndex;
                 return updatedRow;
