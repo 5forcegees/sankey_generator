@@ -112,6 +112,7 @@ for l2_value in l2_values:
         if index_r is 0:
             # skip the column headers row
             continue
+
         # if the combine_l2 flag was set then we don't care about matching the l2_value in the row
         if not combine_l2:
             # however, if the combine_l2 flag was NOT set then we only include rows where the l2_value matches the
@@ -141,17 +142,16 @@ for l2_value in l2_values:
 
                 match_key = """[ """ + str(quote(previous_value)) + """, """ + str(quote(value)) + """, """
                 for link_count_key in link_count:
-                    print(link_count_key)
                     if str(match_key) in link_count[link_count_key].keys():
                         try:
-                            # not sure why
-                            # if str(match_key) in link_count[link_count_key].keys():
-                            # is getting true sometimes when it should be false but the try:except: handles it
+                            # not sure why this is getting true sometimes when it should be false:
+                            #       if str(match_key) in link_count[link_count_key].keys():
+                            # but the try:except: handles it, just go ahead and put it in as = 1 if it gets the KeyError
                             link_count[l2_value][match_key] += 1
                         except KeyError:
                             link_count[l2_value][match_key] = 1
+
                     else:
-                        print("got into else with match_key" + str(match_key))
                         link_count[l2_value][match_key] = 1
 
                 if match_key not in layers[index_l]:
@@ -166,30 +166,23 @@ json_output = """
                    var chart_data = {
               """
 default_chart_data = 'var defaultDataArray = { '
-checkbox_html = '<div id="L2_outer"> <span id="toggleInner">Click here to Show/Hide this div </span><div id="L2_inner" > '
-num_l2 = 0
 first_l2 = True
 for l2_key in l2_layers.keys():
     json_output += "\"" + l2_key + "\": {"
-    num_l2 += 1
-    checkbox_html += "<input type=checkbox class=\"selectL2 \" name=\"" + l2_key + "\" "
     if first_l2:
         default_chart_data += "\"" + l2_key + "\": {"
-        checkbox_html += " checked=\"checked\" > " + l2_key + " "
-    else:
-        checkbox_html += " >" + l2_key + " "
+
     # better to control the layers by limiting what we put into layers{} but this is much simpler and it's fast anyway
     displayed_layer_count = 0
     for layer in sorted(l2_layers[l2_key].keys()):
         json_output += "\"" + str(layer) + "\": [ "
-
         if first_l2:
             default_chart_data += "\"" + str(layer) + "\": [ "
+
         displayed_layer_count += 1
         if displayed_layer_count <= num_layers:
             for match_key in l2_layers[l2_key][layer]:
                 json_output += match_key + str(quote(link_count[l2_key][match_key])) + ' ] \n,'
-
                 if first_l2:
                     default_chart_data += match_key + str(quote(link_count[l2_key][match_key])) + ' ] \n,'
 
@@ -217,65 +210,6 @@ height = args.height if args.height else int(num_lines * 10) + 100
 default_chart_data = default_chart_data.rstrip(',')
 default_chart_data += ' } ;'
 
-checkbox_html += " </div> </div>"
-
-html = """
-<html>
-    <head>
-"""
-
-html += """
-        <script type="text/javascript"
-           src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['sankey']}]}">
-        </script>
-        <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
-        <script type="text/javascript" src="chart_data.js"></script>
-        <script type="text/javascript" src="chart_handler.js"></script>
-    """
-html += """
-
-"""
-html += """
-
-    </head>
-    <body>
-        <h1>
-"""
-
-html += 'API Interaction Sankey Visualization <br><hr>'
-
-html += """
-    </h1>
-    """
-html += checkbox_html
-
-html+= """
-    <hr>
-    <div id="sankey_multiple"
-"""
-
-html += ' style="width: ' + str(width) + '; height: ' + str(height) + 'px;">     </div>'
-
-html += """
-
-"""
-
-html += """
-
-</body>
-<script type="text/javascript">
-
-    var dataArr = dataToArray(defaultDataArray);
-    google.setOnLoadCallback(drawChart(dataArr));
-
-    </script>
-</html>
-"""
-
-output_filename = 'Sankey_' + str(num_layers) + 'layers.html'
-output_filename = output_filename.replace('\ ', '_')
-output_path = os.path.join(output_dir, output_filename)
-
 js_output_path = os.path.join(output_dir, "chart_data.js")
 jsonfh = open(js_output_path, 'w')
 print('writing chart_data.js to ' + js_output_path)
@@ -285,13 +219,3 @@ jsonfh.write(json_output + """
  """)
 
 jsonfh.close()
-
-# we're switching to static html file will rip out the html logic later
-# try:
-#     target = open(output_path, 'w')
-# except IOError:
-#     print('Could not write output to ' + output_path)
-#     exit('Exiting. Please resolve output path')
-# print('writing output to '+output_path)
-# target.write(html)
-# target.close()

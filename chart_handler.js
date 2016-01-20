@@ -21,7 +21,12 @@ $( document ).ready( function(){
         updateChart();
     });
 
+
 });
+
+function updateHeight(px){
+    $("#sankey_multiple").height(px);
+}
 
 var headerArr = [];
 var foundMatch = false;
@@ -67,6 +72,8 @@ function dataToArray(data){
             }
         }
     }
+    var height = returnArray.length * 10;
+    updateHeight(height);
     return returnArray;
 }
 
