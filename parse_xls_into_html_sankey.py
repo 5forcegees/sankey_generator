@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from xlrd import open_workbook
 import string
 import os.path
+import collections
 
 parser = ArgumentParser(description="produces a sankey chart html doc based on the first sheet of a provided xls")
 parser.add_argument("-f", "--filename", type=str, help="the path to the xls source file")
@@ -87,7 +88,7 @@ else:
     l2_values = [filename_no_extension]
 
 # link_count carries the number of times each link exists, will be used for weight in the chart
-link_count = {}
+link_count = collections.defaultdict(lambda: collections.defaultdict())
 
 # the key for the layers dict is just the sankey layer number
 # the value for each layer is a list of the strings we'll use to build the html
@@ -138,11 +139,20 @@ for l2_value in l2_values:
             # skip N/A -> N/A, TBD -> TBD, and 0 -> 0 links, they create circular links which break the chart
             if index_l > 0 and not (re.match(na_regex, previous_value) and re.match(na_regex, value)):
 
-                match_key = '[ ' + str(quote(previous_value)) + ', ' + str(quote(value)) + ', '
-                if str(match_key) in link_count.keys():
-                    link_count[l2_value][match_key] += 1
-                else:
-                    link_count[l2_value][match_key] = 1
+                match_key = """[ """ + str(quote(previous_value)) + """, """ + str(quote(value)) + """, """
+                for link_count_key in link_count:
+                    print(link_count_key)
+                    if str(match_key) in link_count[link_count_key].keys():
+                        try:
+                            # not sure why
+                            # if str(match_key) in link_count[link_count_key].keys():
+                            # is getting true sometimes when it should be false but the try:except: handles it
+                            link_count[l2_value][match_key] += 1
+                        except KeyError:
+                            link_count[l2_value][match_key] = 1
+                    else:
+                        print("got into else with match_key" + str(match_key))
+                        link_count[l2_value][match_key] = 1
 
                 if match_key not in layers[index_l]:
                     layers[index_l].append(match_key)
