@@ -6,6 +6,7 @@ $( document ).ready( function(){
     $(".selectL2").click(function(){
         updateChart();
     });
+
 });
 
 //update the height of the chart div to account for the changed number of links

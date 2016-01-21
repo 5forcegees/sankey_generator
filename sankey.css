@@ -17,7 +17,7 @@ body {
 }
 
 #introText {
-	margin-top:20%;
+	margin-top:5%;
 	margin-bottom:20%;
 	margin-left:25%;
 	margin-right:25%;
@@ -26,11 +26,11 @@ body {
 }
 
 #L2_outer {
-	font-size:0.7em;
+	font-size:0.8em;
 }
 
 #sankey_multiple {
-	/*margin-top: 30px;*/
+	margin: 10px;
 }
 
 #title {
@@ -48,5 +48,28 @@ body {
 	font-size:0.7em;
 	font-style: italic;
 	color: #e20074;
+}
+
+#L2_inner {
+    display: flex;
+}
+
+#L2_inner div {
+    flex: 1;
+    width: 12%;
+}
+
+.checkbox_container_2 {
+    order: 2;
+}
+.checkbox_container_3 {
+    order: 3;
+}
+
+.checkbox_container_4 {
+    order: 4;
+}
+.checkbox_container_5 {
+    order: 5;
 }
 
