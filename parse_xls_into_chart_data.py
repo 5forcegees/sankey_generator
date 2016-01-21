@@ -42,7 +42,7 @@ if errors_found:
     exit('\nExiting application.\nSee error text above for details')
 
 rows_by_screen = {}
-
+screen_counts = {}
 # loop over the rows, skip the header row
 for index_r in range(sheet0.nrows):
     if index_r is 0:
@@ -61,6 +61,12 @@ for index_r in range(sheet0.nrows):
         rows_by_screen[screen_value][0] = {}
         rows_by_screen[screen_value][1] = {}
         rows_by_screen[screen_value][2] = {}
+
+    if screen_value not in screen_counts:
+        screen_counts[screen_value] = 1
+    else:
+        screen_counts[screen_value] += 1
+
 
     if facade_value not in rows_by_screen[screen_value][0]:
         rows_by_screen[screen_value][0][facade_value] = 1
@@ -86,5 +92,8 @@ print('writing chart_data.js to ' + js_output_path)
 jsonfh.write("""
                    var chart_data =
                 """ + json.dumps(rows_by_screen, sort_keys=True) + """ ;
+
+                var screen_counts =
+                """ + json.dumps(screen_counts, sort_keys=True) + """ ;
 """)
 jsonfh.close()
